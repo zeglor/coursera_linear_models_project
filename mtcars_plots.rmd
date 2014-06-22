@@ -1,0 +1,31 @@
+---
+title: "Mtcars plots"
+author: "Ivan Kharybin"
+date: "Sunday, June 22, 2014"
+output: html_document
+---
+
+##Plots
+```{r echo=FALSE}
+pairs(mtcars, main="Mtcars data", panel=panel.smooth)
+```
+
+
+Plot 1. Variable pairs from mtcars dataset.
+
+```{r echo=FALSE}
+par(mfrow = c(2,2))
+plot(mtcars$mpg ~ mtcars$hp, col=mtcars$am+1)
+plot(mtcars$mpg ~ mtcars$wt, col=mtcars$am+1)
+plot(mtcars$mpg ~ mtcars$disp, col=mtcars$am+1)
+plot(mtcars$mpg ~ mtcars$cyl, col=mtcars$am+1)
+```
+
+Plot 2. Mpg dependency on hp, wt, disp and cyl with am=1 painted in red
+
+```{r echo=FALSE}
+fit_hp_cyl <- lm(mpg ~ hp + as.factor(am) + as.factor(cyl), data=mtcars)
+plot(resid(fit_hp_cyl))
+```
+
+Plot 3. Residuals of the final model.

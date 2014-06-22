@@ -1,0 +1,62 @@
+---
+title: "Mtcars analysis"
+author: "Ivan Kharybin"
+date: "Sunday, June 22, 2014"
+output: pdf_document
+---
+
+##executive summary
+Study shows that replacing manual transmission for automated on a car with 4 cylinder engine and fixed horse power will increase its mpg from 3.1 to 5.2 miles/gallon. Dependance seems t obe quite fuzzy since there is no uniform distribution of automated-manual transmission among all cars. Heavy vehicles are often equipped with manual transmission, while light cars tend to have automated one
+
+##Brief
+From pair variable plot (Plot 1) we can see clear linear dependency of mpg on displacement (disp), horse power (hp), rear axle ratio (drat), weight (wt), 1/4 mile time (qsec).
+First, let's try to fit mpg on all other variables:
+```{r}
+fit_all <- lm(mpg ~ ., data=mtcars)
+summary_fit_all <- summary(fit_all)
+summary_fit_all$coef[ ,4]
+```
+Although R-squared is quite high, we cannot tell that our regressors fit the model really well - all their p-values are terribly high. The model seems to be overfitted. This can be due to variable inter-dependency. So we need to leave out most important variables only.
+
+```{r}
+cor(mtcars)[1, ]
+```
+From correlation matrix we can see that `mpg` correlates well with 'cyl', `disp`, `hp` and `wt`. These variables are going to be our first-priority candidates for mpg regressors.  
+From plot 2 we can see that am tends to be concentrated around certain classes of wt and disp values. For instance, we can see that low-weight cars are almost always equipped with automated transmission, while high-weight cars tend to have manual transmission. This fact will almost certainly corrupt our mpg-am analysis. With hp and cyl variables situation seems a little better.  
+Let's see R-squared for mpg fit overe these four variables:
+
+```{r}
+fit_cyl <- lm(mpg ~ cyl + as.factor(am), data=mtcars)
+fit_disp <- lm(mpg ~ disp + as.factor(am), data=mtcars)
+fit_wt <- lm(mpg ~ wt + as.factor(am), data=mtcars)
+fit_hp <- lm(mpg ~ hp + as.factor(am), data=mtcars)
+fit_hp_cyl <- lm(mpg ~ hp + as.factor(am) + as.factor(cyl), data=mtcars)
+
+df = data.frame(
+  cyl = summary(fit_cyl)$r.squared,
+  disp = summary(fit_disp)$r.squared,
+  wt = summary(fit_wt)$r.squared,
+  hp = summary(fit_hp)$r.squared,
+  hp_cyl = summary(fit_hp_cyl)$r.squared
+  )
+df
+```
+
+Models over hp and cyl as regressors seem to have the best R-squared value.
+```{r}
+cor(mtcars$cyl, mtcars$hp)
+```
+Correlation between these two variables is high, wheech seems reasonable - engines having more cylinders are almost certainly more powerful. Therefore, these two variables measure almost same thing, though model including both hp and cyl as regressors performs slightly better according to R-squared.
+```{r}
+summary_table <- summary(fit_hp_cyl)$coefficients
+summary_table
+```
+
+Therefore confidence interval for am coefficient is
+```{r}
+summary_table[3, 1] + c(-1,1) * pt(0.975, df = fit_hp_cyl$df) * summary_table[3,2]
+```
+
+Residuals plot (Plot 3) doesn't expose any dependence of residuals on row index.
+
+Replacing manual transmission for automated on a car with 4 cylinder engine and fixed horse power will increase its mpg from 3.1 to 5.2 miles/gallon.
